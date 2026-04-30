@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Colores base - serán sobrescritos por useTheme según el modo */
+    --background: 140 33% 95%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    
+    /* Primary - Color principal del tema */
+    --primary: 230 37% 17%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary/Accent - Color de acento del tema */
+    --secondary: 145 40% 52%;
+    --secondary-foreground: 0 0% 0%;
+    --accent: 145 40% 52%;
+    --accent-foreground: 0 0% 0%;
+    
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 230 37% 17%;
+    --radius: 0.5rem;
+    
+    /* Sidebar - usa el color primario */
+    --sidebar-background: 230 37% 17%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-accent: 145 40% 52%;
+    --sidebar-accent-foreground: 0 0% 0%;
+    --sidebar-border: 230 37% 25%;
+    --sidebar-ring: 145 40% 52%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 230 37% 17%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 145 40% 52%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 145 40% 52%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 230 37% 17%;
+    
+    --sidebar-background: 230 37% 12%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-accent: 145 40% 52%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 230 37% 20%;
+    --sidebar-ring: 145 40% 52%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom badge styles */
+.badge-generado {
+  @apply bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium;
+}
+
+.badge-en-proceso {
+  @apply bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium;
+}
+
+.badge-no-generado {
+  @apply bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-medium;
+}
+
+.badge-por-enviar {
+  @apply bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium;
+}
+
+.badge-error {
+  @apply bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium;
+}
