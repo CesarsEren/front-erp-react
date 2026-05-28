@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { CalendarIcon, Search, FileText, Download, Loader2 } from 'lucide-react'
+import { CalendarIcon, Search, FileText, Loader2,FileCode, SquareCode } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/components/ui/use-toast'
 
@@ -46,7 +46,7 @@ export default function SearchInvoicesPage() {
     },
   })
 
-  const generateMutation = useMutation({
+/*  const generateMutation = useMutation({
     mutationFn: async (invoice: InvoiceGeneradas) => {
       return solicitudInvoiceService.postGenerarInvoiceIndividual({
         idEncomienda: invoice.nro,
@@ -61,7 +61,7 @@ export default function SearchInvoicesPage() {
     onError: () => {
       toast({ title: 'Error', description: 'Error al generar el comprobante', variant: 'destructive' })
     },
-  })
+  })*/
 
   const generateAllMutation = useMutation({
     mutationFn: async () => {
@@ -94,7 +94,7 @@ export default function SearchInvoicesPage() {
     }
   }
 
-  const handleDownload = async (invoice: InvoiceGeneradas, tipo: 'pdf' | 'xml') => {
+  const handleDownload = async (invoice: InvoiceGeneradas, tipo: 'pdf' | 'xml' | 'zip' | 'cdr') => {
     try {
       const blob = await invoicesService.downloadLink(
         {
@@ -103,7 +103,7 @@ export default function SearchInvoicesPage() {
           tipoServicio: invoice.tipoPago,
           nombreDocumento: `${invoice.serieNumero}.${tipo}`,
         },
-        tipo
+        tipo + '/0'
       )
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -208,7 +208,8 @@ export default function SearchInvoicesPage() {
                     <TableHead>Tipo Doc.</TableHead>
                     <TableHead>Tipo Pago</TableHead>
                     <TableHead>Serie-Número</TableHead>
-                    <TableHead>Estado</TableHead>
+                    <TableHead>Estado Interno</TableHead>
+                    <TableHead>Estado Sunat</TableHead>
                     <TableHead>Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -225,28 +226,59 @@ export default function SearchInvoicesPage() {
                         </span>
                       </TableCell>
                       <TableCell>
+                        <span
+                          className={
+                            invoice.enviado === 0 ? 'badge-por-enviar' :
+                              invoice.enviado === 1 ? 'badge-en-proceso' :
+                                invoice.enviado === 2 ? 'badge-aceptado' :
+                                  'badge-error'
+                          }
+                        >
+                          {invoice.enviado === 0 ? 'Por enviar' :
+                            invoice.enviado === 1 ? 'En proceso' :
+                              invoice.enviado === 2 ? 'Aceptado' :
+                                'Exception'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
                         <div className="flex gap-2">
-                          {!invoice.generado && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => generateMutation.mutate(invoice)}
-                              disabled={generateMutation.isPending}
-                            >
-                              <FileText className="h-4 w-4" />
-                            </Button>
-                          )}
+
                           {invoice.generado && (
                             <>
                               <Button
                                 variant="outline"
                                 size="sm"
+                                title="Descargar PDF"
                                 onClick={() => handleDownload(invoice, 'pdf')}
                               >
-                                <Download className="h-4 w-4" />
+                                <FileText className="h-4 w-4" />
                               </Button>
                             </>
                           )}
+                          {
+                            invoice.generado && (
+                              <Button
+                                variant="outline"
+                                title="Descargar XML"
+                                size="sm"
+                                onClick={() => handleDownload(invoice, 'zip')}
+                              >
+                                <FileCode className="h-4 w-4" />
+                              </Button>
+                            )
+                          }
+                          {
+                            invoice.generado && invoice.enviado === 2 && (
+                              <Button
+                                variant={'outline'}
+                                title='Descargar Cdr'
+                                size={'sm'}
+                                onClick={() => handleDownload(invoice, 'cdr')}
+                              >
+                                <SquareCode className="h-4 w-4" />
+                              </Button>
+                            )
+                          }
                         </div>
                       </TableCell>
                     </TableRow>

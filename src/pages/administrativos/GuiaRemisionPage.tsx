@@ -81,9 +81,9 @@ export default function GuiaRemisionPage() {
     switch (generado) {
       case 0:
         return 'badge-no-generado'
-      case 1:
-        return 'badge-en-proceso'
       case 2:
+        return 'badge-en-proceso'
+      case 1:
         return 'badge-generado'
       default:
         return 'badge-no-generado'
@@ -94,9 +94,9 @@ export default function GuiaRemisionPage() {
     switch (generado) {
       case 0:
         return 'No Generado'
-      case 1:
-        return 'En Proceso'
       case 2:
+        return 'En Proceso'
+      case 1:
         return 'Generado'
       default:
         return 'Desconocido'
@@ -207,6 +207,7 @@ export default function GuiaRemisionPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleVerGrts(manifiesto)}
+                            disabled={manifiesto.generado === 0}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -214,7 +215,7 @@ export default function GuiaRemisionPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleSolicitudGrt(manifiesto)}
-                            disabled={manifiesto.generado === 1}
+                            disabled={manifiesto.generado !== 0}
                           >
                             <FileText className="h-4 w-4" />
                           </Button>

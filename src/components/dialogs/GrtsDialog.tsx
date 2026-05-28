@@ -112,7 +112,7 @@ export default function GrtsDialog({
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${grt.serieNumeroGuia}.xml`
+      a.download = `${grt.serieNumeroGuia}.zip`
       a.click()
       window.URL.revokeObjectURL(url)
     } catch {

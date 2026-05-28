@@ -122,6 +122,7 @@ export interface InvoiceGeneradas {
   link_pdf: string
   link_xml: string
   generado: boolean
+  enviado: number
 }
 
 export interface InvoiceStateDto {

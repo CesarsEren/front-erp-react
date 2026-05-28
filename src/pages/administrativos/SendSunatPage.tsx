@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { CalendarIcon, Search, Send, Download, RotateCcw, Loader2 } from 'lucide-react'
+import { CalendarIcon, Search, Send, Download, Undo2, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/components/ui/use-toast'
 import ConfirmDialog from '@/components/dialogs/ConfirmDialog'
@@ -62,7 +62,7 @@ export default function SendSunatPage() {
   const sendMutation = useMutation({
     mutationFn: async (grt: GrtStateDto) => {
       return guiasStateService.sendGuia({
-        nroGuia: grt.serieNumeroGuia,
+        nroGuia: grt.nroGuia+'',
         nombreDocumento: `GRT-${grt.serieNumeroGuia}`,
       })
     },
@@ -89,6 +89,20 @@ export default function SendSunatPage() {
     },
   })
 
+  const volverPorEnviarMutation = useMutation({
+    mutationFn: async () => {
+      const fechaStr = format(selectedFecha, 'yyyy-MM-dd')
+      return guiasStateService.volverAEstadoPorEnviar({ fechaemision: fechaStr })
+    },
+    onSuccess: () => {
+      toast({ title: 'Éxito', description: 'Guías devueltas a estado Por Enviar correctamente' })
+      refetch()
+    },
+    onError: () => {
+      toast({ title: 'Error', description: 'Error al devolver las guías a estado Por Enviar', variant: 'destructive' })
+    },
+  })
+
   const handleSearch = () => {
     setPage(0)
     refetch()
@@ -106,10 +120,16 @@ export default function SendSunatPage() {
     setConfirmOpen(true)
   }
 
+  const handleVolverPorEnviar = () => {
+    setConfirmMessage('¿Desea devolver todas las guías con errores a estado Por Enviar?')
+    setConfirmAction(() => () => volverPorEnviarMutation.mutate())
+    setConfirmOpen(true)
+  }
+
   const handleDownloadCdr = async (grt: GrtStateDto) => {
     try {
       const blob = await guiasService.downloadLink(
-        { nroGuia: grt.serieNumeroGuia, nombreDocumento: `CDR-${grt.serieNumeroGuia}` },
+        { nroGuia: grt.nroGuia+'', nombreDocumento: `CDR-${grt.serieNumeroGuia}` },
         'cdr'
       )
       const url = window.URL.createObjectURL(blob)
@@ -222,7 +242,7 @@ export default function SendSunatPage() {
                       <TableCell>{grt.nroGuia}</TableCell>
                       <TableCell>{grt.serieNumeroGuia}</TableCell>
                       <TableCell>{grt.ticket || '-'}</TableCell>
-                      <TableCell className="max-w-xs truncate">{grt.respuestaSunat || '-'}</TableCell>
+                      <TableCell className="max-w-md whitespace-normal text-sm">{grt.respuestaSunat || '-'}</TableCell>
                       <TableCell>
                         <span className={getBadgeClass(grt.sunatState)}>
                           {grt.sunatStateD}
@@ -247,15 +267,6 @@ export default function SendSunatPage() {
                               onClick={() => handleDownloadCdr(grt)}
                             >
                               <Download className="h-4 w-4" />
-                            </Button>
-                          )}
-                          {selectedEstado === '3' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleSendGrt(grt)}
-                            >
-                              <RotateCcw className="h-4 w-4" />
                             </Button>
                           )}
                         </div>
@@ -304,6 +315,23 @@ export default function SendSunatPage() {
               <Send className="mr-2 h-4 w-4" />
             )}
             Enviar Todos
+          </Button>
+        </div>
+      )}
+
+      {selectedEstado === '3' && (
+        <div className="flex justify-end">
+          <Button
+            variant="destructive"
+            onClick={handleVolverPorEnviar}
+            disabled={volverPorEnviarMutation.isPending}
+          >
+            {volverPorEnviarMutation.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Undo2 className="mr-2 h-4 w-4" />
+            )}
+            Volver a Estado Por Enviar
           </Button>
         </div>
       )}
