@@ -23,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { CalendarIcon, Search, Send, Loader2 } from 'lucide-react'
+import { CalendarIcon, Search, Send, Loader2, Ban } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/components/ui/use-toast'
 import ConfirmDialog from '@/components/dialogs/ConfirmDialog'
@@ -32,7 +32,18 @@ const estados = [
   { codigo: 0, descripcion: 'Pendientes de Envío' },
   { codigo: 2, descripcion: 'Comprobantes Aceptados' },
   { codigo: 3, descripcion: 'Comprobantes con Errores' },
+  { codigo: 5, descripcion: 'Por Verificar' },
 ]
+
+// Estados de envío (backend): 1 = EN_PROCESO, 3 = EXCEPTION.
+const ESTADO_EN_PROCESO = 1
+const ESTADO_EXCEPTION = 3
+
+// Sin respuesta clara de SUNAT: se puede quitar de la cola y dejar "Por verificar".
+// Las boletas no, van por resumen diario.
+const puedeQuitarseDeCola = (invoice: InvoiceStateDto) =>
+  invoice.tipoDocumento !== '03' &&
+  [ESTADO_EN_PROCESO, ESTADO_EXCEPTION].includes(Number(invoice.sunatState))
 
 export default function SendSunatTributariosPage() {
   const [selectedFecha, setSelectedFecha] = useState<Date>(new Date())
@@ -77,6 +88,24 @@ export default function SendSunatTributariosPage() {
     },
   })
 
+  const quitarDeColaMutation = useMutation({
+    mutationFn: async (invoice: InvoiceStateDto) => {
+      return invoicesStateService.quitarDeCola({
+        nroInvoice: invoice.nroInvoice,
+        tipoDocumento: invoice.tipoDocumento,
+        tipoServicio: invoice.servicio,
+        nombreDocumento: `${invoice.tipoDocumento}-${invoice.serieNumeroInvoice}`,
+      })
+    },
+    onSuccess: () => {
+      toast({ title: 'Éxito', description: 'Comprobante quitado de la cola. Quedó "Por verificar".' })
+      refetch()
+    },
+    onError: () => {
+      toast({ title: 'Error', description: 'No se pudo quitar el comprobante de la cola', variant: 'destructive' })
+    },
+  })
+
   // Angular: POST /sunat-tributarios/send/invoice/all con body RequestAllGuia { fechaemision: string }
   const sendAllMutation = useMutation({
     mutationFn: async () => {
@@ -100,6 +129,15 @@ export default function SendSunatTributariosPage() {
   const handleSendInvoice = (invoice: InvoiceStateDto) => {
     setConfirmMessage(`¿Desea enviar el comprobante ${invoice.serieNumeroInvoice} a SUNAT?`)
     setConfirmAction(() => () => sendMutation.mutate(invoice))
+    setConfirmOpen(true)
+  }
+
+  const handleQuitarDeCola = (invoice: InvoiceStateDto) => {
+    setConfirmMessage(
+      `¿Quitar ${invoice.serieNumeroInvoice} de la cola de envío? Quedará "Por verificar": ` +
+        'confirme en SUNAT si fue recibido antes de reenviarlo.'
+    )
+    setConfirmAction(() => () => quitarDeColaMutation.mutate(invoice))
     setConfirmOpen(true)
   }
 
@@ -215,16 +253,30 @@ export default function SendSunatTributariosPage() {
                         </span>
                       </TableCell>
                       <TableCell>
-                        {selectedEstado === '0' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleSendInvoice(invoice)}
-                            disabled={sendMutation.isPending}
-                          >
-                            <Send className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <div className="flex gap-2">
+                          {(selectedEstado === '0' || selectedEstado === '5') && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleSendInvoice(invoice)}
+                              disabled={sendMutation.isPending}
+                              title="Enviar a SUNAT"
+                            >
+                              <Send className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {puedeQuitarseDeCola(invoice) && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleQuitarDeCola(invoice)}
+                              disabled={quitarDeColaMutation.isPending}
+                              title="Quitar de la cola (queda Por verificar)"
+                            >
+                              <Ban className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

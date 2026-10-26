@@ -1,5 +1,50 @@
 # Guía de Despliegue - CruzCargo Frontend
 
+> ## ⚠️ Antes de compilar para producción (leer primero)
+>
+> **Un build sirve para una sola empresa.** La URL de la API, nombre, logo y colores se
+> fijan al compilar desde `.env.<empresa>` (`npm run build:<empresa>`). No uses
+> `npm run build` a secas: compila sin `VITE_API_URL` y la app no llega a la API.
+>
+> **`.env.cruzcargo` y `.env.navitas` apuntan a `http://localhost:8091`.** Para producción
+> pasa la URL por entorno (tiene prioridad sobre el `.env`). Esto aplica también a
+> `deploy.sh`, `deploy.bat` y al `Dockerfile`, que llaman a `build:cruzcargo`:
+>
+> ```bash
+> VITE_API_URL=https://cruzcargo.pe/api npm run build:cruzcargo
+> ```
+>
+> | Empresa | Script | `VITE_API_URL` de producción |
+> |---|---|---|
+> | CruzCargo | `build:cruzcargo` | `https://cruzcargo.pe/api` (por entorno) |
+> | Encarga | `build:encarga` | `https://encarga.pe/api` (ya en `.env.encarga`) |
+> | Leo | `build:leo` | `https://leo.pe/api` (ya en `.env.leo`) |
+> | Navitas | `build:navitas` | **sin definir**: confirmar la URL antes de compilar |
+>
+> Comprobar qué URL quedó dentro del bundle:
+>
+> ```bash
+> grep -o 'https\?://[^"]*api[^"]*' dist/assets/index-*.js | sort -u
+> ```
+>
+> El `dist/` versionado en el repo corresponde a **CruzCargo producción**.
+>
+> **Dónde se publica:** la app vive bajo `/erpfacturacion/` (`base` en `vite.config.ts`).
+> En el servidor actual (Nginx en Windows, ver `nginx.conf`) el contenido de `dist/` va
+> en `C:/nginx-1.26.2/html/cruzcargo/erpfacturacion/`. Reemplazar **todo** el contenido
+> de esa carpeta (los `.js` cambian de nombre en cada build) tras respaldarla.
+>
+> **Orden con el backend:** desplegar el front **después de back-erp**. La pantalla de
+> envío a SUNAT usa `POST /sunat-tributarios/quitar-cola`, que solo existe desde el
+> hotfix `estados-envio-cpe`. Rollback: restaurar la carpeta respaldada (sin efecto en datos).
+>
+> **Verificar (hotfix estados de envío):** en "Envío de Comprobantes a SUNAT" existe el
+> filtro "Por Verificar"; los comprobantes EN PROCESO (no boletas) tienen el botón
+> "Quitar de la cola"; el listado del día carga aunque haya NC recién generadas.
+>
+> Las secciones de abajo (Nginx genérico, Docker) son la guía general previa; las rutas
+> `/usr/share/nginx/html/` y `base: '/'` que mencionan no son las del servidor actual.
+
 ## 📋 Requisitos Previos
 
 - Node.js 18+ instalado
