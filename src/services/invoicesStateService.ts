@@ -27,6 +27,12 @@ export const invoicesStateService = {
     return response.data
   },
 
+  // POST /sunat-tributarios/quitar-cola: deja el comprobante "Por verificar" (sin respuesta clara de SUNAT)
+  quitarDeCola: async (rqFile: RequestFileInvoice): Promise<ApiResponse<unknown>> => {
+    const response = await api.post<ApiResponse<unknown>>('/sunat-tributarios/quitar-cola', rqFile)
+    return response.data
+  },
+
   // Angular: POST /sunat-tributarios/state/grt/back con body RequestAllGuia
   volverAEstadoPorEnviar: async (request: RequestAllGuia): Promise<ApiResponse<unknown>> => {
     const response = await api.post<ApiResponse<unknown>>('/sunat-tributarios/state/grt/back', request)
