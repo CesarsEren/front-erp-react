@@ -132,10 +132,22 @@ export interface InvoiceStateDto {
   servicio: string
   serieNumeroInvoice: string
   respuestaGeneracion: string
+  respuestaSunat?: string
   ticket: string
   xmlGenerado: boolean
   sunatState: string
   sunatStateD: string
+}
+
+// Solicitud abierta en la cola de GENERACIÓN de XML (v_solicitud*)
+export interface SolicitudGeneracionDto {
+  tipoDocumento: string
+  nro: number
+  servicio: string
+  fechaSolicitud: string | null
+  estado: string
+  intento: number | null
+  ultimoError: string | null
 }
 
 export interface GrtEncomiendaDto {

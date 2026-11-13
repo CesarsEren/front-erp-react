@@ -7,6 +7,7 @@ import GuiaRemisionPage from '@/pages/administrativos/GuiaRemisionPage'
 import SendSunatPage from '@/pages/administrativos/SendSunatPage'
 import SearchInvoicesPage from '@/pages/tributarios/SearchInvoicesPage'
 import SendSunatTributariosPage from '@/pages/tributarios/SendSunatTributariosPage'
+import ColaGeneracionPage from '@/pages/tributarios/ColaGeneracionPage'
 import ReportGrtEncomiendaPage from '@/pages/reportes/ReportGrtEncomiendaPage'
 import ConsultaDocumentosPage from '@/pages/public/ConsultaDocumentosPage'
 
@@ -50,6 +51,7 @@ function App() {
         <Route path="grt-send" element={<SendSunatPage />} />
         <Route path="tributarios/search" element={<SearchInvoicesPage />} />
         <Route path="tributarios/send" element={<SendSunatTributariosPage />} />
+        <Route path="tributarios/cola-generacion" element={<ColaGeneracionPage />} />
         <Route path="reportes/grt-encomienda" element={<ReportGrtEncomiendaPage />} />
       </Route>
     </Routes>
