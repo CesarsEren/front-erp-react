@@ -20,6 +20,20 @@ export const invoicesService = {
     return response.data
   },
 
+  // PDF a demanda (A4 o Ticket) armado por back-erp con su plantilla: GET /api/pdf/generar/v2
+  generarPdf: async (params: {
+    fecha: string
+    empresa: string
+    serie: string
+    numero: number
+    tipoDocumento: string
+    tipoServicio: string
+    formato: 'A4' | 'TICKET'
+  }): Promise<Blob> => {
+    const response = await api.get('/api/pdf/generar/v2', { params, responseType: 'blob' })
+    return response.data
+  },
+
   downloadLink: async (rqFile: RequestFileInvoice, ruta: string): Promise<Blob> => {
     const response = await api.post(`/download-invoice/${ruta}`, rqFile, {
       responseType: 'blob',

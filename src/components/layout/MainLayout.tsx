@@ -24,6 +24,7 @@ import {
   Send,
   Search,
   FileText,
+  ListOrdered,
   User,
   LogOut,
 } from 'lucide-react'
@@ -106,6 +107,9 @@ export default function MainLayout() {
                 </NavItem>
                 <NavItem to="/main/tributarios/send" icon={Send}>
                   Envío a Sunat
+                </NavItem>
+                <NavItem to="/main/tributarios/cola-generacion" icon={ListOrdered}>
+                  Cola de Generación
                 </NavItem>
               </div>
             </AccordionContent>

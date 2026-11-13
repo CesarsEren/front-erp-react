@@ -32,6 +32,7 @@ const estados = [
   { codigo: 0, descripcion: 'Pendientes de Envío' },
   { codigo: 2, descripcion: 'Comprobantes Aceptados' },
   { codigo: 3, descripcion: 'Comprobantes con Errores' },
+  { codigo: 4, descripcion: 'Reintentos Superados' },
   { codigo: 5, descripcion: 'Por Verificar' },
 ]
 
@@ -44,6 +45,11 @@ const ESTADO_EXCEPTION = 3
 const puedeQuitarseDeCola = (invoice: InvoiceStateDto) =>
   invoice.tipoDocumento !== '03' &&
   [ESTADO_EN_PROCESO, ESTADO_EXCEPTION].includes(Number(invoice.sunatState))
+
+// El backend explica el motivo en out_mensaje_cliente / out_mensaje_interno.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mensajeError = (error: any, porDefecto: string) =>
+  error?.response?.data?.out_mensaje_cliente || error?.response?.data?.out_mensaje_interno || porDefecto
 
 export default function SendSunatTributariosPage() {
   const [selectedFecha, setSelectedFecha] = useState<Date>(new Date())
@@ -83,8 +89,13 @@ export default function SendSunatTributariosPage() {
       toast({ title: 'Éxito', description: 'Comprobante enviado correctamente' })
       refetch()
     },
-    onError: () => {
-      toast({ title: 'Error', description: 'Error al enviar el comprobante', variant: 'destructive' })
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: mensajeError(error, 'Error al enviar el comprobante'),
+        variant: 'destructive',
+      })
+      refetch()
     },
   })
 
@@ -101,8 +112,12 @@ export default function SendSunatTributariosPage() {
       toast({ title: 'Éxito', description: 'Comprobante quitado de la cola. Quedó "Por verificar".' })
       refetch()
     },
-    onError: () => {
-      toast({ title: 'Error', description: 'No se pudo quitar el comprobante de la cola', variant: 'destructive' })
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: mensajeError(error, 'No se pudo quitar el comprobante de la cola'),
+        variant: 'destructive',
+      })
     },
   })
 
@@ -242,7 +257,7 @@ export default function SendSunatTributariosPage() {
                 </TableHeader>
                 <TableBody>
                   {invoices?.content?.map((invoice: InvoiceStateDto) => (
-                    <TableRow key={invoice.nroInvoice}>
+                    <TableRow key={`${invoice.tipoDocumento}-${invoice.nroInvoice}`}>
                       <TableCell>{invoice.nroInvoice}</TableCell>
                       <TableCell>{invoice.tipoDocumento}</TableCell>
                       <TableCell>{invoice.serieNumeroInvoice}</TableCell>
@@ -251,6 +266,14 @@ export default function SendSunatTributariosPage() {
                         <span className={getBadgeClass(invoice.sunatState)}>
                           {invoice.sunatStateD}
                         </span>
+                        {invoice.respuestaSunat && Number(invoice.sunatState) !== 2 && (
+                          <p
+                            className="mt-1 max-w-xs truncate text-xs text-muted-foreground"
+                            title={invoice.respuestaSunat}
+                          >
+                            {invoice.respuestaSunat}
+                          </p>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
@@ -262,7 +285,12 @@ export default function SendSunatTributariosPage() {
                               disabled={sendMutation.isPending}
                               title="Enviar a SUNAT"
                             >
-                              <Send className="h-4 w-4" />
+                              {sendMutation.isPending && sendMutation.variables?.nroInvoice === invoice.nroInvoice ? (
+                                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                              ) : (
+                                <Send className="mr-1 h-4 w-4" />
+                              )}
+                              Enviar
                             </Button>
                           )}
                           {puedeQuitarseDeCola(invoice) && (
@@ -273,7 +301,8 @@ export default function SendSunatTributariosPage() {
                               disabled={quitarDeColaMutation.isPending}
                               title="Quitar de la cola (queda Por verificar)"
                             >
-                              <Ban className="h-4 w-4" />
+                              <Ban className="mr-1 h-4 w-4" />
+                              Quitar de cola
                             </Button>
                           )}
                         </div>
